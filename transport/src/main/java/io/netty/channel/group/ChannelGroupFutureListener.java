@@ -23,6 +23,7 @@ import io.netty.util.concurrent.GenericFutureListener;
  * listener is added by calling {@link ChannelGroupFuture#addListener(GenericFutureListener)}
  * and all I/O operations are complete.
  */
+// 此监听器并没有什么特殊的含义，只不过做了跟细化的约束，此监听器只会用于ChannelGroupFuture类型的Future
 public interface ChannelGroupFutureListener extends GenericFutureListener<ChannelGroupFuture> {
 
 }

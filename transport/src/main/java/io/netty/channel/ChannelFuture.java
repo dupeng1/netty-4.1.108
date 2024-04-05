@@ -164,7 +164,9 @@ import java.util.concurrent.TimeUnit;
  */
 
 /**
- * 只可以查询当前异步操作的结果，不可以修改当前异步结果的 Future
+ * 管道任务，管道是netty的核心概念，他将每个请求都当做一个管道，用户可以使用管道进行通讯读取数据等操作，
+ * 再讲完结构后会讲解管道的概念，这里暂时将ChannelFuture当做一个定义，这里可以看出他继承与Future但是返回的类型确实Void，
+ * Void类仅仅是一个站位标志类无任何作用，暂且当做当前的Future并没有结果可以返回。
  */
 public interface ChannelFuture extends Future<Void> {
 
@@ -172,8 +174,12 @@ public interface ChannelFuture extends Future<Void> {
      * Returns a channel where the I/O operation associated with this
      * future takes place.
      */
+    // 返回当前的操作管道
     Channel channel();
 
+    //下面@Override标记的方法都是对父类的重写替换，这里可能有人会有疑问为什么父类定义返回的是Future而这里则是ChannelFuture，
+    // 这是因为java在1.5后支持方法重写返回类型，可以是子类，这话可能比较绕，那么就按现在的代码来看在Future中返回的是Future，
+    // 那么在重写里还是允许修改为Future的子类
     @Override
     ChannelFuture addListener(GenericFutureListener<? extends Future<? super Void>> listener);
 

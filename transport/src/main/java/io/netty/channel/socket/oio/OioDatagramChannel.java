@@ -57,6 +57,10 @@ import java.util.Locale;
  * @see DatagramPacket
  * @deprecated use NIO / EPOLL / KQUEUE transport.
  */
+
+/**
+ * 用于阻塞地处理UDP连接
+ */
 @Deprecated
 public class OioDatagramChannel extends AbstractOioMessageChannel
                                 implements DatagramChannel {

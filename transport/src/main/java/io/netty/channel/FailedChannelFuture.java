@@ -24,6 +24,7 @@ import io.netty.util.internal.PlatformDependent;
  * recommended to use {@link Channel#newFailedFuture(Throwable)}
  * instead of calling the constructor of this future.
  */
+// 继承于CompleteChannelFuture抽象类，此类并没有什么可说的，具体含义参照FailedFuture接口的讲解
 final class FailedChannelFuture extends CompleteChannelFuture {
 
     private final Throwable cause;

@@ -42,6 +42,10 @@ import java.net.SocketTimeoutException;
  *
  * @deprecated use NIO / EPOLL / KQUEUE transport.
  */
+
+/**
+ * 作用：用于维持阻塞的TCP连接
+ */
 @Deprecated
 public class OioSocketChannel extends OioByteStreamChannel implements SocketChannel {
 

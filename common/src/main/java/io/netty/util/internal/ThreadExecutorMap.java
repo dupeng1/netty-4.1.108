@@ -54,6 +54,7 @@ public final class ThreadExecutorMap {
         return new Executor() {
             @Override
             public void execute(final Runnable command) {
+                // 这里调用了NioEventLoopGroup所包含的executor的execute()
                 executor.execute(apply(command, eventExecutor));
             }
         };
@@ -66,9 +67,11 @@ public final class ThreadExecutorMap {
     public static Runnable apply(final Runnable command, final EventExecutor eventExecutor) {
         ObjectUtil.checkNotNull(command, "command");
         ObjectUtil.checkNotNull(eventExecutor, "eventExecutor");
+        // 这里包装了一个runnable，记录当前执行线程，并在执行完成后删除
         return new Runnable() {
             @Override
             public void run() {
+                // 做了线程隔离
                 setCurrentEventExecutor(eventExecutor);
                 try {
                     command.run();

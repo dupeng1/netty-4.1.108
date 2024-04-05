@@ -45,12 +45,17 @@ import java.util.concurrent.TimeUnit;
 /**
  * Abstract base class for {@link Channel} implementations which use a Selector based approach.
  */
+/**
+ * 主要是对Selector的封装操作
+ */
 public abstract class AbstractNioChannel extends AbstractChannel {
 
     private static final InternalLogger logger =
             InternalLoggerFactory.getInstance(AbstractNioChannel.class);
-
+    // Netty NIO Channel对象，持有的Java原生NIO的Channel对象
     private final SelectableChannel ch;
+    // 感兴趣的读事件的操作位值，AbstractNioMessageChannel是SelectionKey.OP_ACCEPT，
+    // AbstractNioByteChannel是SelectionKey.OP_READ
     protected final int readInterestOp;
     volatile SelectionKey selectionKey;
     boolean readPending;
@@ -80,12 +85,13 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         super(parent);
         // 这里的this.ch为NIO原生channel
         this.ch = ch;
-        // 将readInterestOp设置为SelectionKey.OP_ACCEPT（接受连接）
+        // 设置感兴趣的事件
         this.readInterestOp = readInterestOp;
         try {
-            // NIO，非阻塞
+            // 将ServerSocketChannel设为非阻塞
             ch.configureBlocking(false);
         } catch (IOException e) {
+            // 如果发生异常则关闭NIO Channel
             try {
                 ch.close();
             } catch (IOException e2) {
@@ -380,6 +386,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         return loop instanceof NioEventLoop;
     }
 
+    // 将NChannel注册到EventLoop的Selector上
     @Override
     protected void doRegister() throws Exception {
         boolean selected = false;
@@ -389,6 +396,12 @@ public abstract class AbstractNioChannel extends AbstractChannel {
                 // 1、javaChannel() ：这里获取原生的 Nio Channel，跟进去可以找到这里返回的是 AbstractNioChannel#ch 的 channel
                 // 2、然后调用 NIO Channel 的 Regsiter 方法
                 // 3、unwrappedSelector 前面初始化的 selector 数组；第二个参数是0，就是当前监听的事件，0表示不关注任何事件
+
+                //但这里为什么设置的感兴趣事件为0呢？Netty权威指南第二版给出的解释如下:
+                //（1）注册方法是多态的，它既可以被NioServerSocketChannel用来监听客户端的连接接入，
+                // 也可以注册SocketChannel用来监听网络读写或者写操作
+                //（2）通过SelectionKey的interestOps(int ops)方法可以方便地修改感兴趣的时间，
+                // 所以此处注册需要获取SelectionKey并给AbstractNIOChannel的成员变量selectionKey赋值
                 selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
                 return;
             } catch (CancelledKeyException e) {

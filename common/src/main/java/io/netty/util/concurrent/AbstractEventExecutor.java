@@ -33,13 +33,17 @@ import java.util.concurrent.TimeUnit;
 /**
  * Abstract base class for {@link EventExecutor} implementations.
  */
+// 从申明可以看出他是继承AbstractExecutorService
 public abstract class AbstractEventExecutor extends AbstractExecutorService implements EventExecutor {
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(AbstractEventExecutor.class);
-
+    // 默认的关闭前的时间
     static final long DEFAULT_SHUTDOWN_QUIET_PERIOD = 2;
+    // 默认的关闭超时时间
     static final long DEFAULT_SHUTDOWN_TIMEOUT = 15;
-
+    // 当前执行器所属的执行组
+    // 该EventLoop所属的EventExecutorGroup(EventLoopGroup)
     private final EventExecutorGroup parent;
+    // 之前说过EventExecutor也是继承Group，所以他里面也有迭代的实现而为了切合他的迭代方法此处采用了只有一个元素的集合实现
     private final Collection<EventExecutor> selfCollection = Collections.<EventExecutor>singleton(this);
 
     protected AbstractEventExecutor() {
@@ -60,16 +64,19 @@ public abstract class AbstractEventExecutor extends AbstractExecutorService impl
         return this;
     }
 
+    // 之前说过inEvent的实现就是调用了重载的inEvent，默认传入的是当前线程
     @Override
     public boolean inEventLoop() {
         return inEventLoop(Thread.currentThread());
     }
 
+    // 默认的迭代器
     @Override
     public Iterator<EventExecutor> iterator() {
         return selfCollection.iterator();
     }
 
+    // 刚才说的两个默认值使用地方就是此处设置默认的超时时间和超时前时间，这两个时间的使用会在具体实现出讲解
     @Override
     public Future<?> shutdownGracefully() {
         return shutdownGracefully(DEFAULT_SHUTDOWN_QUIET_PERIOD, DEFAULT_SHUTDOWN_TIMEOUT, TimeUnit.SECONDS);
@@ -78,6 +85,7 @@ public abstract class AbstractEventExecutor extends AbstractExecutorService impl
     /**
      * @deprecated {@link #shutdownGracefully(long, long, TimeUnit)} or {@link #shutdownGracefully()} instead.
      */
+    // 已经被废弃建议使用shutdownGracefully
     @Override
     @Deprecated
     public abstract void shutdown();

@@ -23,11 +23,14 @@ import io.netty.util.internal.UnstableApi;
 
 import java.util.concurrent.TimeUnit;
 
+// 此类是无效的类，用到此类的地方都是用作站位，具体的在使用的地方详细介绍。、
+// 他的存在是为了减少侦听器通知和维护侦听器集合的开销，但是作者表明希望删除它估计以后的版本这个类会消失，github issus 8518可查看作者的解释
 @UnstableApi
 public final class VoidChannelPromise extends AbstractFuture<Void> implements ChannelPromise {
-
+    // 既然实现了ChannelPromise此属性是必备的，ChannelPromise中有个channel方法用来返回
     private final Channel channel;
     // Will be null if we should not propagate exceptions through the pipeline on failure case.
+    // 是否你传播异常，如果此属性不是null则进行传递，因为handle是多个顺序执行的第一个handle出错传给下一个handle然后继续传播
     private final ChannelFutureListener fireExceptionListener;
 
     /**
@@ -35,9 +38,11 @@ public final class VoidChannelPromise extends AbstractFuture<Void> implements Ch
      *
      * @param channel the {@link Channel} associated with this future
      */
+    // 传入一个管道并且传入是否需要传播异常
     public VoidChannelPromise(final Channel channel, boolean fireException) {
         ObjectUtil.checkNotNull(channel, "channel");
         this.channel = channel;
+        // 当传播异常为true的时候将会创建一个监听器的匿名类，当完成任务后判断是否发生了异常如果发生则开始传播。
         if (fireException) {
             fireExceptionListener = new ChannelFutureListener() {
                 @Override
@@ -49,10 +54,12 @@ public final class VoidChannelPromise extends AbstractFuture<Void> implements Ch
                 }
             };
         } else {
+            // 如果设置不传播则赋值为null
             fireExceptionListener = null;
         }
     }
 
+    // 之前说过此类仅仅是一个标识类所以并没有监听器可维护，所以内部调用了一个抛出异常的方法。
     @Override
     public VoidChannelPromise addListener(GenericFutureListener<? extends Future<? super Void>> listener) {
         fail();

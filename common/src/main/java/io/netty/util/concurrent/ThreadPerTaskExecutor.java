@@ -20,6 +20,10 @@ import io.netty.util.internal.ObjectUtil;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
 
+/**
+ * 此类是用于包装了线程工厂的一个执行器
+ *
+ */
 public final class ThreadPerTaskExecutor implements Executor {
     private final ThreadFactory threadFactory;
 
@@ -27,6 +31,7 @@ public final class ThreadPerTaskExecutor implements Executor {
         this.threadFactory = ObjectUtil.checkNotNull(threadFactory, "threadFactory");
     }
 
+    // 当调用此执行器时将会使用线程工厂创建一个线程去执行传入的runnable
     @Override
     public void execute(Runnable command) {
         threadFactory.newThread(command).start();

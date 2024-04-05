@@ -121,12 +121,18 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
     }
 
     /**
-     * @param nThreads the number of threads that will be used by this instance.
-     * @param executor the Executor to use, or {@code null} if default one should be used.
+     * @param nThreads the number of threads that will be used by this instance.    最大线程数量，如果指定为0，那么netty
+     *                 会将线程数量设置为CPU逻辑处理器数量的2倍
+     * @param executor the Executor to use, or {@code null} if default one should be used.  线程池
      * @param chooserFactory the {@link EventExecutorChooserFactory} to use.
-     * @param selectorProvider the {@link SelectorProvider} to use.
-     * @param selectStrategyFactory the {@link SelectStrategyFactory} to use.
-     * @param rejectedExecutionHandler the {@link RejectedExecutionHandler} to use.
+     * @param selectorProvider the {@link SelectorProvider} to use.     如果没有指定SelectorProvider，
+     *                         那么默认的SelectorProvider为SelectorProvider.provider()，可以创建selector。
+     * @param selectStrategyFactory the {@link SelectStrategyFactory} to use.   如果没有指定则默认为
+     *                              DefaultSelectStrategyFactory.INSTANCE
+     * @param rejectedExecutionHandler the {@link RejectedExecutionHandler} to use.     类似于JDK线程池，
+     *                                 如果这个EventLoopGroup已被关闭，
+     *                                 那么之后提交的Runnable任务会默认调用RejectedExecutionHandler的reject方法进行处理。
+     *                                 如果没有指定，则默认指定为RejectedExecutionHandlers.REJECT
      * @param taskQueueFactory the {@link EventLoopTaskQueueFactory} to use for
      *                         {@link SingleThreadEventLoop#execute(Runnable)},
      *                         or {@code null} if default one should be used.
@@ -148,6 +154,7 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
      * Sets the percentage of the desired amount of time spent for I/O in the child event loops.  The default value is
      * {@code 50}, which means the event loop will try to spend the same amount of time for I/O as for non-I/O tasks.
      */
+    // 设置IO百分比，默认50%
     public void setIoRatio(int ioRatio) {
         for (EventExecutor e: this) {
             ((NioEventLoop) e).setIoRatio(ioRatio);
@@ -158,12 +165,14 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
      * Replaces the current {@link Selector}s of the child event loops with newly created {@link Selector}s to work
      * around the  infamous epoll 100% CPU bug.
      */
+    // 覆盖事件循环选择器
     public void rebuildSelectors() {
         for (EventExecutor e: this) {
             ((NioEventLoop) e).rebuildSelector();
         }
     }
 
+    // 创建EventLoop对象，并绑定executor
     @Override
     protected EventLoop newChild(Executor executor, Object... args) throws Exception {
         SelectorProvider selectorProvider = (SelectorProvider) args[0];

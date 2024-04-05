@@ -40,6 +40,10 @@ import java.util.List;
  *
  * @deprecated use NIO / EPOLL / KQUEUE transport.
  */
+
+/**
+ * 作用：用于服务端阻塞地接收TCP连接
+ */
 @Deprecated
 public class OioServerSocketChannel extends AbstractOioMessageChannel
                                     implements ServerSocketChannel {

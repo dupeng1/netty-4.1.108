@@ -27,23 +27,31 @@ import java.util.concurrent.TimeoutException;
  */
 public abstract class AbstractFuture<V> implements Future<V> {
 
+    // 对Future的实现获取执行结果
     @Override
     public V get() throws InterruptedException, ExecutionException {
+        // 等待执行结果，此方法会进行阻塞，等待执行结束为止或者被中断，如果被中断则抛出异常。
         await();
-
+        // 当执行结束获取当前的执行过程中的异常，可以看出await等待如果执行内部出错是不会抛出异常的。
         Throwable cause = cause();
+        // 如果执行过程中没有异常，则获取执行的结果getNow非阻塞方法。
         if (cause == null) {
             return getNow();
         }
+        // 否则则判断是否被取消，如果是被取消则后续可以做处理，毕竟是人为的。
         if (cause instanceof CancellationException) {
             throw (CancellationException) cause;
         }
+        // 如果不是被取消那么就代表是执行逻辑出错了，那么则封装异常并且抛出异常。
         throw new ExecutionException(cause);
     }
 
+    // 也是获取执行结果只不过设置了超时时间
     @Override
     public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        // 等待一定时间的执行如果超时则返回false否则是true
         if (await(timeout, unit)) {
+            // 能进来说明并未超时，则获取执行过程中的异常，以下的处理参考上方的get方法。
             Throwable cause = cause();
             if (cause == null) {
                 return getNow();
@@ -53,6 +61,7 @@ public abstract class AbstractFuture<V> implements Future<V> {
             }
             throw new ExecutionException(cause);
         }
+        // 到这一步则代表即使超时了也并没有完成任务则抛出TimeOut异常
         throw new TimeoutException();
     }
 }

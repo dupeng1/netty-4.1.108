@@ -165,10 +165,15 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     protected SingleThreadEventExecutor(EventExecutorGroup parent, Executor executor,
                                         boolean addTaskWakesUp, Queue<Runnable> taskQueue,
                                         RejectedExecutionHandler rejectedHandler) {
+        //所属的NioEventLoopGroup
         super(parent);
+        //默认为false
         this.addTaskWakesUp = addTaskWakesUp;
+        //当这个EventLoop持有的尚未执行的任务超过这个数后，新提交的任务会被拒绝执行并转交给RejectedExecutionHandler
         this.maxPendingTasks = DEFAULT_MAX_PENDING_EXECUTOR_TASKS;
+        // 初始化子线程
         this.executor = ThreadExecutorMap.apply(executor, this);
+        //构造一个任务队列
         this.taskQueue = ObjectUtil.checkNotNull(taskQueue, "taskQueue");
         this.rejectedExecutionHandler = ObjectUtil.checkNotNull(rejectedHandler, "rejectedHandler");
     }
@@ -463,37 +468,44 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      * the tasks in the task queue and returns if it ran longer than {@code timeoutNanos}.
      */
     protected boolean runAllTasks(long timeoutNanos) {
+        // 从定时任务队列中取出所有当前马上就要到期的定时任务放入到任务队列
         fetchFromScheduledTaskQueue();
+        // 从任务队列中取出一个任务
         Runnable task = pollTask();
+        // 若该任务为空，则说明任务队列中已经没有任务了，此时就可以执行收尾任务了
         if (task == null) {
+            // 执行收尾队列中的收尾任务
             afterRunningAllTasks();
             return false;
         }
 
         final long deadline = timeoutNanos > 0 ? getCurrentTimeNanos() + timeoutNanos : 0;
+        // 计数器
         long runTasks = 0;
         long lastExecutionTime;
         for (;;) {
+            // 执行任务
             safeExecute(task);
 
             runTasks ++;
 
             // Check timeout every 64 tasks because nanoTime() is relatively expensive.
             // XXX: Hard-coded value - will make it configurable if it is really a problem.
+            // 每64个任务查看一次超时
             if ((runTasks & 0x3F) == 0) {
                 lastExecutionTime = getCurrentTimeNanos();
                 if (lastExecutionTime >= deadline) {
                     break;
                 }
             }
-
+            // 从任务队列中再取出一个任务
             task = pollTask();
             if (task == null) {
                 lastExecutionTime = getCurrentTimeNanos();
                 break;
             }
         }
-
+        // 处理收尾队列中的任务
         afterRunningAllTasks();
         this.lastExecutionTime = lastExecutionTime;
         return true;
@@ -839,13 +851,15 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     }
 
     private void execute(Runnable task, boolean immediate) {
-        // 判断当前线程与eventLoop所绑定线程是否是同一个
+        // 判断当前线程是不是EventLoop中成员变量的executor线程
         boolean inEventLoop = inEventLoop();
         // 将任务添加到任务队列
         addTask(task);
+        // 如果不是就启动当前线程
         if (!inEventLoop) {
-            // 创建并启动一个线程
+            // 启动线程（成员变量中的execute）
             startThread();
+            // 如果线程池已经被关闭，那么移除这个任务对象，然后抛出RejectedExecutionException
             if (isShutdown()) {
                 boolean reject = false;
                 try {
@@ -961,6 +975,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     private void startThread() {
         // 若当前eventLoop所绑定线程尚未启动
         if (state == ST_NOT_STARTED) {
+            // 通过CAS改变state变量，然后调用doStartThread方法启动线程
             if (STATE_UPDATER.compareAndSet(this, ST_NOT_STARTED, ST_STARTED)) {
                 boolean success = false;
                 try {
@@ -1007,8 +1022,10 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
                 }
 
                 boolean success = false;
+                // 更新这个线程开始运行的时间
                 updateLastExecutionTime();
                 try {
+                    // 调用SingleThreadEventExecutor的run方法
                     // 执行了一个不会停止的for，用于完成任务队列中的任务
                     SingleThreadEventExecutor.this.run();
                     success = true;

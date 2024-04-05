@@ -62,6 +62,10 @@ import java.util.Map;
  * @see AddressedEnvelope
  * @see DatagramPacket
  */
+
+/**
+ * 作用：用于非阻塞地处理UDP连接
+ */
 public final class NioDatagramChannel
         extends AbstractNioMessageChannel implements io.netty.channel.socket.DatagramChannel {
 

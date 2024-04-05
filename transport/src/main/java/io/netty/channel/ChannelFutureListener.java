@@ -32,12 +32,14 @@ import io.netty.util.concurrent.GenericFutureListener;
  * to perform a blocking operation on I/O completion, try to execute the
  * operation in a different thread using a thread pool.
  */
+// 与ChannelGroupFutureListener接口一样仅仅是一个监听器的别名，针对ChannelFuture做的约束监听器
 public interface ChannelFutureListener extends GenericFutureListener<ChannelFuture> {
 
     /**
      * A {@link ChannelFutureListener} that closes the {@link Channel} which is
      * associated with the specified {@link ChannelFuture}.
      */
+    // 内部定义的默认实现CLOSE 当ChannelFuture关闭的时候如果添加了此监听器则会将管道一并关闭
     ChannelFutureListener CLOSE = new ChannelFutureListener() {
         @Override
         public void operationComplete(ChannelFuture future) {
@@ -49,6 +51,7 @@ public interface ChannelFutureListener extends GenericFutureListener<ChannelFutu
      * A {@link ChannelFutureListener} that closes the {@link Channel} when the
      * operation ended up with a failure or cancellation rather than a success.
      */
+    // 当future设置失败的时候触发CLOSE_ON_FAILURE监听器会将管道关闭
     ChannelFutureListener CLOSE_ON_FAILURE = new ChannelFutureListener() {
         @Override
         public void operationComplete(ChannelFuture future) {
@@ -62,6 +65,7 @@ public interface ChannelFutureListener extends GenericFutureListener<ChannelFutu
      * A {@link ChannelFutureListener} that forwards the {@link Throwable} of the {@link ChannelFuture} into the
      * {@link ChannelPipeline}. This mimics the old behavior of Netty 3.
      */
+    // CLOSE_ON_FAILURE是这是失败则关闭，而FIRE_EXCEPTION_ON_FAILURE设置失败则传播异常具体在讲述pipeline的时候会进行讲解
     ChannelFutureListener FIRE_EXCEPTION_ON_FAILURE = new ChannelFutureListener() {
         @Override
         public void operationComplete(ChannelFuture future) {

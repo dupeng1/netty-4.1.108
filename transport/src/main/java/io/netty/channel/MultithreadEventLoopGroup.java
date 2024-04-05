@@ -34,9 +34,11 @@ public abstract class MultithreadEventLoopGroup extends MultithreadEventExecutor
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(MultithreadEventLoopGroup.class);
 
+    // 默认线程数
     private static final int DEFAULT_EVENT_LOOP_THREADS;
 
     static {
+        //默认线程数为当前机器逻辑处理器数量的2倍
         DEFAULT_EVENT_LOOP_THREADS = Math.max(1, SystemPropertyUtil.getInt(
                 "io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
 
@@ -83,7 +85,7 @@ public abstract class MultithreadEventLoopGroup extends MultithreadEventExecutor
 
     @Override
     public ChannelFuture register(Channel channel) {
-        // next() 从eventLoop数组中选择一个eventLoop
+        // next() 从eventLoop数组中选择一个eventLoop，进入SingleThreadEventLoop
         return next().register(channel);
     }
 

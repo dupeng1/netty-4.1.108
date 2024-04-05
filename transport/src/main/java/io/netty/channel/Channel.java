@@ -218,24 +218,28 @@ public interface Channel extends AttributeMap, ChannelOutboundInvoker, Comparabl
          * Return the {@link SocketAddress} to which is bound local or
          * {@code null} if none.
          */
+        // 获取该Channel的本地地址
         SocketAddress localAddress();
 
         /**
          * Return the {@link SocketAddress} to which is bound remote or
          * {@code null} if none is bound yet.
          */
+        // 获取该Channel连接地址
         SocketAddress remoteAddress();
 
         /**
          * Register the {@link Channel} of the {@link ChannelPromise} and notify
          * the {@link ChannelFuture} once the registration was complete.
          */
+        // 向EventLoop注册这个Channel，并通知指定的ChannelPromise
         void register(EventLoop eventLoop, ChannelPromise promise);
 
         /**
          * Bind the {@link SocketAddress} to the {@link Channel} of the {@link ChannelPromise} and notify
          * it once its done.
          */
+        // 指定一个本地地址，将Channel绑定这个地址，并通知指定的ChannelPromise
         void bind(SocketAddress localAddress, ChannelPromise promise);
 
         /**
@@ -245,46 +249,54 @@ public interface Channel extends AttributeMap, ChannelOutboundInvoker, Comparabl
          *
          * The {@link ChannelPromise} will get notified once the connect operation was complete.
          */
+        // 通过本地地址向指定的地址发起连接，并通知指定的ChannelPromise
         void connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise);
 
         /**
          * Disconnect the {@link Channel} of the {@link ChannelFuture} and notify the {@link ChannelPromise} once the
          * operation was complete.
          */
+        // 取消连接，并通知指定的ChannelPromise
         void disconnect(ChannelPromise promise);
 
         /**
          * Close the {@link Channel} of the {@link ChannelPromise} and notify the {@link ChannelPromise} once the
          * operation was complete.
          */
+        // 关闭Channel通道，并通知指定的ChannelPromise
         void close(ChannelPromise promise);
 
         /**
          * Closes the {@link Channel} immediately without firing any events.  Probably only useful
          * when registration attempt failed.
          */
+        // 立刻关闭Channel通道，不通知ChannelPromise
         void closeForcibly();
 
         /**
          * Deregister the {@link Channel} of the {@link ChannelPromise} from {@link EventLoop} and notify the
          * {@link ChannelPromise} once the operation was complete.
          */
+        // 将这个Channel从EventLoop取消注册，并通知指定的ChannelPromise
         void deregister(ChannelPromise promise);
 
         /**
          * Schedules a read operation that fills the inbound buffer of the first {@link ChannelInboundHandler} in the
          * {@link ChannelPipeline}.  If there's already a pending read operation, this method does nothing.
          */
+        // 写入缓冲区，以便进站处理器能够读到进站数据
         void beginRead();
 
         /**
          * Schedules a write operation.
          */
+        // 向缓冲区中写入数据，并通知指定的ChannelPromise
         void write(Object msg, ChannelPromise promise);
 
         /**
          * Flush out all write operations scheduled via {@link #write(Object, ChannelPromise)}.
          */
+        // 输出调用write方法写入的缓冲区数据
         void flush();
 
         /**
@@ -292,11 +304,13 @@ public interface Channel extends AttributeMap, ChannelOutboundInvoker, Comparabl
          * It will never be notified of a success or error and so is only a placeholder for operations
          * that take a {@link ChannelPromise} as argument but for which you not want to get notified.
          */
+        // 返回这个Channel的特殊ChannelPromise
         ChannelPromise voidPromise();
 
         /**
          * Returns the {@link ChannelOutboundBuffer} of the {@link Channel} where the pending write requests are stored.
          */
+        // 获取出站缓冲区
         ChannelOutboundBuffer outboundBuffer();
     }
 }

@@ -33,6 +33,7 @@ public interface EventExecutorGroup extends ScheduledExecutorService, Iterable<E
      * Returns {@code true} if and only if all {@link EventExecutor}s managed by this {@link EventExecutorGroup}
      * are being {@linkplain #shutdownGracefully() shut down gracefully} or was {@linkplain #isShutdown() shut down}.
      */
+    // 【事件执行器组】是否正在关闭
     boolean isShuttingDown();
 
     /**
@@ -40,6 +41,7 @@ public interface EventExecutorGroup extends ScheduledExecutorService, Iterable<E
      *
      * @return the {@link #terminationFuture()}
      */
+    // 优雅安全关闭【事件执行器组】
     Future<?> shutdownGracefully();
 
     /**
@@ -56,14 +58,17 @@ public interface EventExecutorGroup extends ScheduledExecutorService, Iterable<E
      *
      * @return the {@link #terminationFuture()}
      */
+    // 支持延时优雅安全关闭【事件执行器组】
     Future<?> shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit);
 
     /**
      * Returns the {@link Future} which is notified when all {@link EventExecutor}s managed by this
      * {@link EventExecutorGroup} have been terminated.
      */
+    // 返回终止时执行的Future操作结果
     Future<?> terminationFuture();
 
+    // 此方法来自于ScheduledExecutorService
     /**
      * @deprecated {@link #shutdownGracefully(long, long, TimeUnit)} or {@link #shutdownGracefully()} instead.
      */
@@ -71,6 +76,7 @@ public interface EventExecutorGroup extends ScheduledExecutorService, Iterable<E
     @Deprecated
     void shutdown();
 
+    // 此方法来自于ScheduledExecutorService
     /**
      * @deprecated {@link #shutdownGracefully(long, long, TimeUnit)} or {@link #shutdownGracefully()} instead.
      */
@@ -81,29 +87,38 @@ public interface EventExecutorGroup extends ScheduledExecutorService, Iterable<E
     /**
      * Returns one of the {@link EventExecutor}s managed by this {@link EventExecutorGroup}.
      */
+    // 返回一个由EventExecutorGroup管理的EventExecutor
     EventExecutor next();
 
+    // 此方法重写Iterable接口
     @Override
     Iterator<EventExecutor> iterator();
 
+    // 此方法来自于ScheduledExecutorService
     @Override
     Future<?> submit(Runnable task);
 
+    // 此方法来自于ScheduledExecutorService
     @Override
     <T> Future<T> submit(Runnable task, T result);
 
+    // 此方法来自于ScheduledExecutorService
     @Override
     <T> Future<T> submit(Callable<T> task);
 
+    // 此方法来自于ScheduledExecutorService
     @Override
     ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit);
 
+    // 此方法来自于ScheduledExecutorService
     @Override
     <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit);
 
+    // 此方法来自于ScheduledExecutorService
     @Override
     ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit);
 
+    // 此方法来自于ScheduledExecutorService
     @Override
     ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit);
 }

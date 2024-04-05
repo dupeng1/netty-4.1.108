@@ -1,0 +1,15 @@
+node:internal/validators:119
+    throw new ERR_INVALID_ARG_TYPE(name, 'string', value);
+    ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The "url" argument must be of type string. Received undefined
+    at new NodeError (node:internal/errors:371:5)
+    at validateString (node:internal/validators:119:11)
+    at Url.parse (node:url:169:3)
+    at Object.urlParse [as parse] (node:url:156:13)
+    at AnalysisLSPServer.handle_file_event (D:\Program Files\JetBrains\.IntelliJIdea2019.1\config\plugins\org.jboss.tools.intellij.analytics\lib\server\server.js:90:29)
+    at Timeout._onTimeout (D:\Program Files\JetBrains\.IntelliJIdea2019.1\config\plugins\org.jboss.tools.intellij.analytics\lib\server\server.js:276:16)
+    at listOnTimeout (node:internal/timers:557:17)
+    at processTimers (node:internal/timers:500:7) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}

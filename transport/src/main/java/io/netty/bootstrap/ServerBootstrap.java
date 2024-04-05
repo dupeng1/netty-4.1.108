@@ -100,6 +100,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
     /**
      * Specify the {@link EventLoopGroup} which is used for the parent (acceptor) and the child (client).
      */
+    // 该方法用于客户端，用来设置一个EventLoop
     @Override
     public ServerBootstrap group(EventLoopGroup group) {
         return group(group, group);
@@ -110,6 +111,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
      * {@link EventLoopGroup}'s are used to handle all the events and IO for {@link ServerChannel} and
      * {@link Channel}'s.
      */
+    // 该方法用于服务端，用来设置两个EventLoop
     public ServerBootstrap group(EventLoopGroup parentGroup, EventLoopGroup childGroup) {
         super.group(parentGroup);
         if (this.childGroup != null) {
@@ -124,6 +126,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
      * (after the acceptor accepted the {@link Channel}). Use a value of {@code null} to remove a previous set
      * {@link ChannelOption}.
      */
+    // 用来给接收到的通道添加配置
     public <T> ServerBootstrap childOption(ChannelOption<T> childOption, T value) {
         ObjectUtil.checkNotNull(childOption, "childOption");
         synchronized (childOptions) {
@@ -153,25 +156,38 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
     /**
      * Set the {@link ChannelHandler} which is used to serve the request for the {@link Channel}'s.
      */
+    // 用来设置业务处理类
     public ServerBootstrap childHandler(ChannelHandler childHandler) {
         this.childHandler = ObjectUtil.checkNotNull(childHandler, "childHandler");
         return this;
     }
 
+    // 初始化Channel配置
     @Override
     void init(Channel channel) {
+        // Channel 的配置参数保存在 NioServerSocketChannelConfig 中，
+        // 在初始化 Channel 的过程中，Netty 会将这些参数设置到 JDK 底层的 Socket 上
+        // 将options属性设置到channel
         setChannelOptions(channel, newOptionsArray(), logger);
+        // 将attrs属性设置到channel
         setAttributes(channel, newAttributesArray());
         // 获取channel的pipeline
         ChannelPipeline p = channel.pipeline();
-        // 将serverBootstrap中所有以child开头的属性写入到局部变量，
-        // 然后将它们初始化到childChannel中
+        // 将serverBootstrap中所有以child开头的属性写入到局部变量，然后将它们初始化到childChannel中
         final EventLoopGroup currentChildGroup = childGroup;
         final ChannelHandler currentChildHandler = childHandler;
         final Entry<ChannelOption<?>, Object>[] currentChildOptions = newOptionsArray(childOptions);
         final Entry<AttributeKey<?>, Object>[] currentChildAttrs = newAttributesArray(childAttrs);
         final Collection<ChannelInitializerExtension> extensions = getInitializerExtensions();
+        // 添加ChannelInitializer对象到pipeline中，主要的操作是处理 childGroup 里面的 channel 的初始化操作
+        // 首先 ServerBootstrap 为 Pipeline 添加了一个 ChannelInitializer，ChannelInitializer 是实现了
+        // ChannelHandler 接口的匿名类，其中 ChannelInitializer 实现的 initChannel() 方法用于添加 ServerSocketChannel
+        // 对应的 Handler，此时服务端的 pipeline 有HeaderContext、ChannelInitializer、TailContext
 
+        // 为什么使用ChannelInitializer进行初始化？而不是直接添加到pipeline中
+        // 因为此时Channel还没有注册到EventLoop中，
+        // 如果调用eventLoop().execute会抛出Exception in thread "main" java.lang.IllegalStateException:
+        // channel not registered to an event loop异常
         p.addLast(new ChannelInitializer<Channel>() {
             @Override
             public void initChannel(final Channel ch) {
@@ -271,9 +287,10 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             // msg为客户端发送来的数据，其为NioSocketChannel，即子channel，childChannel
             final Channel child = (Channel) msg;
-            // 将来自于ServerBootstrap的child开头属性初始化到childChannel中（childHandler、childOptions、childAttrs）
+            // 这一步会将Server自定义的Handler加入
             child.pipeline().addLast(childHandler);
 
+            // 将来自于ServerBootstrap的child开头属性初始化到childChannel中（childHandler、childOptions、childAttrs）
             setChannelOptions(child, childOptions, logger);
             setAttributes(child, childAttrs);
 

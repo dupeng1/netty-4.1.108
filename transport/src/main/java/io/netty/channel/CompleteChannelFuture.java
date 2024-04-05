@@ -25,8 +25,10 @@ import io.netty.util.internal.ObjectUtil;
  * A skeletal {@link ChannelFuture} implementation which represents a
  * {@link ChannelFuture} which has been completed already.
  */
+// 与CompleteFuture类一样也是定义结果的，只不过这里是针对管道操作进行的定义，而CompleteFuture是针对所有任务定义的，
+// 此类是在CompleteFuture的基础上提出关于管道的任务做了更细致的定义。并且这个类实现了前面讲述的ChannelFuture接口
 abstract class CompleteChannelFuture extends CompleteFuture<Void> implements ChannelFuture {
-
+    // 既然是关于管道的自然需要相关联
     private final Channel channel;
 
     /**
@@ -34,15 +36,18 @@ abstract class CompleteChannelFuture extends CompleteFuture<Void> implements Cha
      *
      * @param channel the {@link Channel} associated with this future
      */
+    // 既然是继承于CompleteFuture自然需要一个执行器，判断传入的管道不能为null
     protected CompleteChannelFuture(Channel channel, EventExecutor executor) {
         super(executor);
         this.channel = ObjectUtil.checkNotNull(channel, "channel");
     }
 
+    //获取执行器
     @Override
     protected EventExecutor executor() {
         EventExecutor e = super.executor();
         if (e == null) {
+            // 如果创建结果时并没有传入执行器则返回管道的执行器
             return channel().eventLoop();
         } else {
             return e;
@@ -93,6 +98,7 @@ abstract class CompleteChannelFuture extends CompleteFuture<Void> implements Cha
         return this;
     }
 
+    // 返回传入的管道
     @Override
     public Channel channel() {
         return channel;

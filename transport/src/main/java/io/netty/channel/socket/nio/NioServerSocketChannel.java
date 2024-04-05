@@ -45,6 +45,16 @@ import java.util.Map;
  * A {@link io.netty.channel.socket.ServerSocketChannel} implementation which uses
  * NIO selector based implementation to accept new connections.
  */
+
+/**
+ * 作用：用于服务端非阻塞地接收TCP连接
+ * 1、实例化NioServerSocketChannel
+ * 2、完成NioServerSocketChannel管道初始化
+ * 3、将NioServerSocketChannel注册到NioEventLoopGroup
+ * 4、绑定端口，开始接受客户端连接
+ * 在netty Bootstrap启动之后会执行channel，此时将NioServerSocketChannel的Class对象加入到BootStrap的ChannelFactory之中
+ * 这个ChannelFactory是ReflectiveChannelFactory类型的
+ */
 public class NioServerSocketChannel extends AbstractNioMessageChannel
                              implements io.netty.channel.socket.ServerSocketChannel {
 
@@ -59,6 +69,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
 
     private static ServerSocketChannel newChannel(SelectorProvider provider, InternetProtocolFamily family) {
         try {
+            // 创建NIO原生的channel => ServerSocketChannel
             ServerSocketChannel channel =
                     SelectorProviderUtil.newChannel(OPEN_SERVER_SOCKET_CHANNEL_WITH_FAMILY, provider, family);
             return channel == null ? provider.openServerSocketChannel() : channel;
@@ -67,6 +78,10 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
         }
     }
 
+    /**
+     * Channel对应的配置对象，每种Channel实现类，也会对应一个ChannelConfig实现类，
+     * 例如NioServerSocketChannel对应ServerSocketChannelConfig
+     */
     private final ServerSocketChannelConfig config;
 
     /**
@@ -96,7 +111,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
     public NioServerSocketChannel(ServerSocketChannel channel) {
         // 参数1：父channel
         // 参数2：NIO原生channel
-        // 参数3：指定当前channel所关注的事件为  接受连接
+        // 参数3：指定当前channel所关注的事件为【接受连接】
         super(null, channel, SelectionKey.OP_ACCEPT);
         // 用于对channel进行配置的属性集合，就是给当前Channel的config进行赋值，用来保存当前Channel的属性配置的集合
         config = new NioServerSocketChannelConfig(this, javaChannel().socket());
@@ -143,6 +158,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
     @Override
     protected void doBind(SocketAddress localAddress) throws Exception {
         if (PlatformDependent.javaVersion() >= 7) {
+            //调用Java原生的ServerSocketChannel绑定ip + 端口
             javaChannel().bind(localAddress, config.getBacklog());
         } else {
             javaChannel().socket().bind(localAddress, config.getBacklog());
@@ -156,14 +172,18 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
 
     @Override
     protected int doReadMessages(List<Object> buf) throws Exception {
+        // 获取NIO SocketChannel
         SocketChannel ch = SocketUtils.accept(javaChannel());
 
         try {
+            // 将ServerSocketChannel和NioServerSocketChannel封装为一个
+            // NioSocketChannel对象，然后添加到readBuf中
             if (ch != null) {
                 buf.add(new NioSocketChannel(this, ch));
                 return 1;
             }
         } catch (Throwable t) {
+            // 发生异常则关闭Channel
             logger.warn("Failed to create a new channel from an accepted socket.", t);
 
             try {

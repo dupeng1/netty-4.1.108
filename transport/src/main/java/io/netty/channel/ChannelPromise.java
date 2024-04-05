@@ -24,18 +24,23 @@ import io.netty.util.concurrent.Promise;
  */
 
 /**
- * 可以修改当前异步结果的状态，并且在修改状态是会触发监听器
+ * 可以【修改】当前【异步结果】的【状态】，并且在【修改】【状态】是会触发【监听器】
  */
-public interface ChannelPromise extends ChannelFuture, Promise<Void> {
 
+//此接口继承了两个接口ChannelFuture与Promise具体讲解请看上文。
+//前面介绍Promise的时候说过他是一个特殊的Future他可以手动设置成功，
+// 设置成功需要一个结果值而这里的定义则是结果值是一个Void无效的类型可以看出只要是实现当前的Future则都没有返回值即使有返回值也是Void。
+
+public interface ChannelPromise extends ChannelFuture, Promise<Void> {
+    // 这里再一次重新定义了ChannelFuture的channel方法，这个重写毫无意义。。估计是为了以后修改，修改方式则是将Channel改成他的子类实现，暂时不管看当前接口到时候的实现即可
     @Override
     Channel channel();
-
+    // 这里仅仅是对父类的一个重写，此重写是为了返回this为ChannelPromise的对象，这样方便调用ChannelPromise中声明的方法
     @Override
     ChannelPromise setSuccess(Void result);
-
+    // 既然是无效值说明不设置也可以所以这里将上方的传参去掉了
     ChannelPromise setSuccess();
-
+    // 尝试成功也是一样，去除了无效的结果值
     boolean trySuccess();
 
     @Override
@@ -68,5 +73,6 @@ public interface ChannelPromise extends ChannelFuture, Promise<Void> {
     /**
      * Returns a new {@link ChannelPromise} if {@link #isVoid()} returns {@code true} otherwise itself.
      */
+    // 如果isVoid是true则返回全新的ChannelPromise，否则返回this
     ChannelPromise unvoid();
 }

@@ -24,13 +24,17 @@ import java.util.Objects;
 
 final class SelectedSelectionKeySet extends AbstractSet<SelectionKey> {
 
+    // 一个SelectionKey数组
     SelectionKey[] keys;
+    // 一个int型的变量，表示这个数组拥有的SelectionKey的数量
     int size;
 
+    // 数组的初始大小默认为1024
     SelectedSelectionKeySet() {
         keys = new SelectionKey[1024];
     }
 
+    // 元素的添加从数组的0号位开始逐一添加，当数组满了后，会扩容到原先的2倍
     @Override
     public boolean add(SelectionKey o) {
         if (o == null) {

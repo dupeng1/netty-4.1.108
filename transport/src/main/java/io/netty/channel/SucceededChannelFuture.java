@@ -22,6 +22,7 @@ import io.netty.util.concurrent.EventExecutor;
  * recommended to use {@link Channel#newSucceededFuture()} instead of
  * calling the constructor of this future.
  */
+// 继承于CompleteChannelFuture抽象类，此类并没有什么可说的，具体含义参照SucceededFuture接口的讲解
 final class SucceededChannelFuture extends CompleteChannelFuture {
 
     /**

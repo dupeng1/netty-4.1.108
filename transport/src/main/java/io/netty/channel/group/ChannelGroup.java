@@ -92,12 +92,14 @@ import java.util.Set;
  * }
  * </pre>
  */
+// 此接口是对Channel对象做的分组，分了组每一组都是一个ChannelGroup而他可以进行批量管理
 public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
 
     /**
      * Returns the name of this group.  A group name is purely for helping
      * you to distinguish one group from others.
      */
+    // 返回当前分组的名字
     String name();
 
     /**
@@ -105,6 +107,7 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      *
      * @return the matching {@link Channel} if found. {@code null} otherwise.
      */
+    // 根据ChannelId获取对于的Channel,Channel接口定义的时候就要一个id方法是用来返回当前的Channel的id
     Channel find(ChannelId id);
 
     /**
@@ -117,6 +120,8 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      *
      * @return itself
      */
+    // 给当前组内的Channel群发消息，如果消息是ByteBuf类型将会不会出现发送内容错误的情况，因为他会将内容进行一份保存每次返回的都是最原始的对象
+    // 并且此方法是异步的，因为Channel中的write是异步的。ChannelGroupFuture write(Object message);
     ChannelGroupFuture write(Object message);
 
     /**
@@ -130,6 +135,7 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      * @return the {@link ChannelGroupFuture} instance that notifies when
      *         the operation is done for all channels
      */
+    // 是上方方法的重载，增加了匹配，用于匹配channel，这样就可以在组内匹配指定channel进行发送消息
     ChannelGroupFuture write(Object message, ChannelMatcher matcher);
 
     /**
@@ -146,6 +152,7 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      * @return the {@link ChannelGroupFuture} instance that notifies when
      *         the operation is done for all channels
      */
+    // 上方方法的重载，添加了是否返回无效的应答，此应答就是VoidChannelGroupFuture，如果是false那么将返回DefaultChannelGroupFuture
     ChannelGroupFuture write(Object message, ChannelMatcher matcher, boolean voidPromise);
 
     /**
@@ -159,6 +166,7 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      * @return the {@link ChannelGroupFuture} instance that notifies when
      *         the operation is done for all channels
      */
+    // 刷新组内全部的channel管道，说白了就是循环channel集合然后调用每个channel的flush方法
     ChannelGroup flush();
 
     /**
@@ -172,16 +180,19 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      * @return the {@link ChannelGroupFuture} instance that notifies when
      *         the operation is done for all channels
      */
+    // 上方方法的重载刷新匹配到的管道
     ChannelGroup flush(ChannelMatcher matcher);
 
     /**
      * Shortcut for calling {@link #write(Object)} and {@link #flush()}.
      */
+    // 结合了write与flush方法
     ChannelGroupFuture writeAndFlush(Object message);
 
     /**
      * @deprecated Use {@link #writeAndFlush(Object)} instead.
      */
+    // 此方法已经废弃了内部实现调用的是writeAndFlush方法
     @Deprecated
     ChannelGroupFuture flushAndWrite(Object message);
 
@@ -189,17 +200,20 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      * Shortcut for calling {@link #write(Object)} and {@link #flush()} and only act on
      * {@link Channel}s that are matched by the {@link ChannelMatcher}.
      */
+    // 结合flush(ChannelMatcher matcher)与write(Object message, ChannelMatcher matcher)方法，可以过滤管道
     ChannelGroupFuture writeAndFlush(Object message, ChannelMatcher matcher);
 
     /**
      * Shortcut for calling {@link #write(Object, ChannelMatcher, boolean)} and {@link #flush()} and only act on
      * {@link Channel}s that are matched by the {@link ChannelMatcher}.
      */
+    // 结合flush(ChannelMatcher matcher);与write(Object message, ChannelMatcher matcher, boolean voidPromise);方法。
     ChannelGroupFuture writeAndFlush(Object message, ChannelMatcher matcher, boolean voidPromise);
 
     /**
      * @deprecated Use {@link #writeAndFlush(Object, ChannelMatcher)} instead.
      */
+    // 内部调用writeAndFlush(Object message, ChannelMatcher matcher)方法，此方法已废弃
     @Deprecated
     ChannelGroupFuture flushAndWrite(Object message, ChannelMatcher matcher);
 
@@ -209,6 +223,7 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      * @return the {@link ChannelGroupFuture} instance that notifies when
      *         the operation is done for all channels
      */
+    // 操作组内所有的channel断开连接
     ChannelGroupFuture disconnect();
 
     /**
@@ -218,6 +233,7 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      * @return the {@link ChannelGroupFuture} instance that notifies when
      *         the operation is done for all channels
      */
+    // 上方方法的重构只是添加了筛选channel的功能
     ChannelGroupFuture disconnect(ChannelMatcher matcher);
 
     /**
@@ -228,6 +244,7 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      * @return the {@link ChannelGroupFuture} instance that notifies when
      *         the operation is done for all channels
      */
+    // 关闭channel管道
     ChannelGroupFuture close();
 
     /**
@@ -238,6 +255,7 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      * @return the {@link ChannelGroupFuture} instance that notifies when
      *         the operation is done for all channels
      */
+    // 重构上方方法添加了管道的过滤
     ChannelGroupFuture close(ChannelMatcher matcher);
 
     /**
@@ -249,6 +267,7 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      * @return the {@link ChannelGroupFuture} instance that notifies when
      *         the operation is done for all channels
      */
+    // 用于注销事件使用EventLoop中的
     @Deprecated
     ChannelGroupFuture deregister();
 
@@ -261,6 +280,7 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      * @return the {@link ChannelGroupFuture} instance that notifies when
      *         the operation is done for all channels
      */
+    // 重载上方代码加入管道筛选已经废弃不建议使用
     @Deprecated
     ChannelGroupFuture deregister(ChannelMatcher matcher);
 
@@ -268,11 +288,13 @@ public interface ChannelGroup extends Set<Channel>, Comparable<ChannelGroup> {
      * Returns the {@link ChannelGroupFuture} which will be notified when all {@link Channel}s that are part of this
      * {@link ChannelGroup}, at the time of calling, are closed.
      */
+    // 获取管道关闭时的Future，可以使用它监听关闭
     ChannelGroupFuture newCloseFuture();
 
     /**
      * Returns the {@link ChannelGroupFuture} which will be notified when all {@link Channel}s that are part of this
      * {@link ChannelGroup}, at the time of calling, are closed.
      */
+    // 重载上方方法获取指定管道的关闭Future
     ChannelGroupFuture newCloseFuture(ChannelMatcher matcher);
 }

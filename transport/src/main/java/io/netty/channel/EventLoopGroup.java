@@ -22,6 +22,11 @@ import io.netty.util.concurrent.EventExecutorGroup;
  * processed for later selection during the event loop.
  *
  */
+
+/**
+ * Netty通过事件循环机制(EventLoop)处理IO事件和异步任务，简单说就是通过一个死循环，不断处理当前已发生的IO事件和异步任务。
+ * 这种事件循环机制也是一种常用的IO事件处理机制，EventLoopGroup负责调度EventLoop
+ */
 public interface EventLoopGroup extends EventExecutorGroup {
     /**
      * Return the next {@link EventLoop} to use

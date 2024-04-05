@@ -102,11 +102,13 @@ import java.util.Iterator;
  * make sure you do not call {@link #await()} in an I/O thread.  Otherwise,
  * {@link IllegalStateException} will be raised to prevent a dead lock.
  */
+// 用于ChannelGroup的批量处理，这里他实现了Iterable
 public interface ChannelGroupFuture extends Future<Void>, Iterable<ChannelFuture> {
 
     /**
      * Returns the {@link ChannelGroup} which is associated with this future.
      */
+    // 返回相关联的ChannelGroup
     ChannelGroup group();
 
     /**
@@ -116,15 +118,18 @@ public interface ChannelGroupFuture extends Future<Void>, Iterable<ChannelFuture
      * @return the matching {@link ChannelFuture} if found.
      *         {@code null} otherwise.
      */
+    // 通过传入的管道获取对应处理的Future
     ChannelFuture find(Channel channel);
 
     /**
      * Returns {@code true} if and only if all I/O operations associated with
      * this future were successful without any failure.
      */
+    // 批量处理的结果，如果传入的处理都成功了那么则返回true，有一个任务失败都会返回false。
     @Override
     boolean isSuccess();
 
+    // 获取操作中的异常，这个异常也是经过处理的，因为可能是多个任务处理失败。
     @Override
     ChannelGroupException cause();
 
@@ -132,12 +137,14 @@ public interface ChannelGroupFuture extends Future<Void>, Iterable<ChannelFuture
      * Returns {@code true} if and only if the I/O operations associated with
      * this future were partially successful with some failure.
      */
+    // 当处理的任务中部分是成功的则为true
     boolean isPartialSuccess();
 
     /**
      * Returns {@code true} if and only if the I/O operations associated with
      * this future have failed partially with some success.
      */
+    // 当处理的任务中部分失败了则为true
     boolean isPartialFailure();
 
     @Override
@@ -170,6 +177,7 @@ public interface ChannelGroupFuture extends Future<Void>, Iterable<ChannelFuture
      * {@link Iterator} is unmodifiable, which means a {@link ChannelFuture}
      * cannot be removed from this future.
      */
+    // 获取处理任务的迭代器，这样就可以遍历批量中的任务并进行操作
     @Override
     Iterator<ChannelFuture> iterator();
 }

@@ -32,6 +32,7 @@ import java.util.List;
 /**
  * {@link AbstractNioChannel} base class for {@link Channel}s that operate on messages.
  */
+//操作消息的基类
 public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
     boolean inputShutdown;
 
@@ -59,8 +60,10 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
         return allocHandle.continueReading();
     }
 
+    // NioMessageUnsafe继承了AbstractNioUnsafe，重写了read方法，用于处理OP_ACCPET事件
     private final class NioMessageUnsafe extends AbstractNioUnsafe {
 
+        // readBuf存放了ServerSocketChannel获取的SocketChannel，每个SocketChannel对应一个客户端连接
         private final List<Object> readBuf = new ArrayList<Object>();
 
         @Override
@@ -76,6 +79,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             try {
                 try {
                     do {
+                        // 将对应的SocketChannel添加到readBuf中，返回1
                         int localRead = doReadMessages(readBuf);
                         if (localRead == 0) {
                             break;
@@ -90,16 +94,18 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                 } catch (Throwable t) {
                     exception = t;
                 }
-
+                // 将SocketChannel传递给ChannelInboundHandler
                 int size = readBuf.size();
                 for (int i = 0; i < size; i ++) {
                     readPending = false;
+                    // 产生一个进站事件，流经管道的msg为SocketChannel实例
                     pipeline.fireChannelRead(readBuf.get(i));
                 }
+                // 清除这些读取到的ByteBuf，并调用ChannelInboundHandler的fireChannelReadComplete方法
                 readBuf.clear();
                 allocHandle.readComplete();
                 pipeline.fireChannelReadComplete();
-
+                // 如果发生异常，调用ChannelInboundHandler的fireExceptionCaught方法
                 if (exception != null) {
                     closed = closeOnReadError(exception);
 
@@ -119,7 +125,9 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                 // * The user called Channel.read() or ChannelHandlerContext.read() in channelReadComplete(...) method
                 //
                 // See https://github.com/netty/netty/issues/2254
+                // 再次检查这个事件有没有从事件集中去除
                 if (!readPending && !config.isAutoRead()) {
+                    // 从事件集中移除这个事件
                     removeReadOp();
                 }
             }
